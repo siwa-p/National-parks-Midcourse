@@ -47,3 +47,19 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+
+# api_key
+/api_key.md
+
+
+#notes file
+/notes.md
+
+
+#api_key
+/keys.json
+
+/data/*geojson
+
+/data

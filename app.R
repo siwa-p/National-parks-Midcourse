@@ -1,4 +1,18 @@
 # app.R
+# List of required packages
+required_packages <- c("shiny", "tidyverse", "plotly", "lubridate", "ggplot2", 
+                       "dplyr", "purrr", "sf", "leaflet", "forecast", "DT")
+
+# Function to check if each package is installed, and if not, install it
+install_if_missing <- function(pkg) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# Apply the function to each package
+invisible(lapply(required_packages, install_if_missing))
 
 library(shiny)
 library(tidyverse)
