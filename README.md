@@ -14,4 +14,9 @@ There are two time series plots below the map. The one on the left shows the vis
 The time-series plot on the right narrows down on one such event (chosen by user from available events) and attempts a seasonal ARIMA forecast on the visitor data immediately after the incident. A p-value of the fit is displayed. 
 
 - To run this app
-  - run this command shiny::runGitHub("National-parks-Midcourse", "siwa-p") from the R console. 
+You can run the Shiny app from GitHub with the following command in your R console:
+
+```r
+shiny::runGitHub("National-parks-Midcourse", "siwa-p")
+
+```
