@@ -1,8 +1,7 @@
 library(shiny)
 library(DT)
 
-# Define UI for application
-
+# Define UI for the application
 fluidPage(
   
   # Application title
@@ -10,50 +9,39 @@ fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      selectInput("park","select a park:",
-                  choices = setNames(selected_parks$PARKCODE,selected_parks$fullName)),
+      selectInput("park", "Select a Park:",
+                  choices = setNames(selected_parks$PARKCODE, selected_parks$fullName)),
       
       sliderInput("date_slider", "Date Range:",
-                  min = min(Incidents_date_choices), max(Incidents_date_choices),
+                  min = min(Incidents_date_choices), 
+                  max = max(Incidents_date_choices),
                   value = c(min(Incidents_date_choices), max(Incidents_date_choices)),
                   step = 1),
-
-      selectInput("min_date",
-                  label = "Date From",
+      
+      selectInput("min_date", "Date From:",
                   choices = Date_choices),
       
-      selectInput("incident_dates","select an event:",
-                  choices = NULL),
-      
-      # selectInput("range", "Select a range:",
-      #             choices = unique(Incidents_date_choices),
-      #             selected = c(min(Incidents_date_choices), max(Incidents_date_choices)),
-      #             multiple = TRUE),
-
+      selectInput("incident_dates", "Select an Event:",
+                  choices = NULL)
     ),
     
     mainPanel(
-      tabsetPanel(type="tab",
+      tabsetPanel(type = "tabs",
                   tabPanel("Main",
                            fluidRow(
-                             leafletOutput("mapplot")),
+                             leafletOutput("mapplot", height = 400)
+                           ),
                            fluidRow(
-                             column(6,plotOutput("linePlot")),
+                             column(6, plotOutput("linePlot")),
                              column(6, plotOutput("linePlot2"))
                            ),
                            fluidRow(
                              textOutput("ARIMA-Summary")
-                           ),
-                           
-                           # fluidRow(
-                           # DT::dataTableOutput("filtered_data")
-                           # ),
-                           
+                           )
                   ),
                   tabPanel("Forecast",
-                           plotOutput(
-                             "forecastPlot"
-                           ))
+                           plotOutput("forecastPlot")
+                  )
       )
     )
   )
