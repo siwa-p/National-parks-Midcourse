@@ -1,0 +1,163 @@
+Try to use a time series analysis on one of the parks object
+
+1. choose a park
+
+2. make parks_long
+
+3. parks_long has a Value column for each month of the year ranging from 1979 to 2023
+
+4. make that column a time series object in the range with frequency 12 (monthly data)
+
+load the library
+```{r}
+library(forecast)
+library(shiny)
+library(tidyverse)
+library(plotly)
+library(lubridate) #for graphic
+library(ggplot2) # for make_date()
+library(dplyr)
+library(purrr)
+library(sf)
+library(leaflet)
+```
+read parks data
+
+```{r}
+
+parks <- read.csv("../data/park_visitor_data.csv")
+parks <- parks|>
+  mutate(across(-PARKCODE, ~as.integer(gsub(",", "", .))))
+
+parks_long_ABLI <- parks |>
+  filter(PARKCODE=='ABLI')|>
+  select(-X,-PARKCODE, -TOTAL)|>
+  gather(key = "Month", value = "Value", -YEAR)
+
+#create a map to make Month column numeric
+month_mapping <- c(JAN = 1, FEB = 2, MAR = 3, APR = 4, MAY = 5, JUN = 6,
+                   JUL = 7, AUG = 8, SEP = 9, OCT = 10, NOV = 11, DEC = 12)
+
+parks_long_ABLI <- parks_long_ABLI %>%
+  mutate(MonthNumeric = month_mapping[Month])
+
+# Create a new 'Date' column
+parks_long_ABLI <- parks_long_ABLI %>%
+  mutate(Date = make_date(YEAR, MonthNumeric))|>
+  arrange(Date)
+```
+Save this parks_long dataframe as binary object
+
+```{r}
+parks_long_ABLI <- saveRDS(parks_long_ABLI, '../data/parks_long_ABLI.rds')
+```
+
+
+Now let's read this file
+
+```{r}
+parks_long_ABLI_try <- readRDS('../data/parks_long_ABLI.rds')
+```
+
+
+Create a time series object based on the Value column in the dataframe
+
+```{r}
+visitation_ABLI <- ts(
+  parks_long_ABLI_try$Value, 
+  start = c(1979, 1),
+  end = c(2023, 12),
+  frequency = 12)
+```
+
+plot the time series object 
+
+```{r}
+plot(visitation_ABLI)
+```
+```{r}
+
+
+
+# Plot autocorrelation function with larger labels and fonts
+par(cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.5, cex.sub = 1.5)
+acf_result <- acf(visitation_ABLI)
+```
+Fit a simple model
+
+visitation_ABLI(t) = Constant + e_t
+
+e_t is noise 
+assumption : the noise is normally distributed ~ N(0,sigma)
+
+```{r}
+
+avg_model <- arima(visitation_ABLI, c(0,0,0))
+```
+
+look at the structure of the model 
+
+```{r}
+str(avg_model)
+```
+Forecast 
+```{r}
+avg_forecast <- forecast(avg_model, 48)
+```
+
+
+take a look at the forecast
+
+```{r}
+str(avg_forecast)
+```
+look at the mean value predicted 
+
+```{r}
+avg_forecast$mean
+```
+
+No variation in the predicted value as the model did not have any such time dependence
+```{r}
+plot(visitation_ABLI)
+lines(avg_forecast$mean,col = "red")
+```
+Do this with tidyverse and ggplot ??
+
+Let's add the predicted values to the dataframe
+
+```{r}
+parks_long_ABLI_try$predicted_values <- data.frame(datetime_column = x, y_values = y, arima_predictions = avg_forecast$mean)
+
+
+```
+
+
+```{r}
+# Plotting the original data
+ggplot(parks_long_ABLI_try, aes(x = Date, y = Value)) +
+  geom_line(color = "blue")
+```
+
+
+```{r}
+autoplot(avg_forecast)
+```
+
+
+Non-seasonal ARIMA model 
+
+```{r}
+arima_model <- auto.arima(visitation_ABLI, seasonal = FALSE)
+arima_forecast <- forecast(arima_model, 48, level= c(50,95))
+autoplot(arima_forecast)
+```
+
+
+Seasonal ARIMA model
+
+```{r}
+seasonal_arima_model <- auto.arima(visitation_ABLI)
+seasonal_arima_forecast <- forecast(seasonal_arima_model, 48, level= c(50,95))
+autoplot(seasonal_arima_forecast)
+```
